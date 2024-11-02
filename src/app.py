@@ -1,4 +1,4 @@
-import eel
+from flask import Flask, render_template, request, jsonify
 import os
 from queue import Queue
 
@@ -7,50 +7,40 @@ class ChatBot:
     started = False
     userinputQueue = Queue()
 
-    def isUserInput():
-        return not ChatBot.userinputQueue.empty()
+    @classmethod
+    def isUserInput(cls):
+        return not cls.userinputQueue.empty()
 
-    def popUserInput():
-        return ChatBot.userinputQueue.get()
+    @classmethod
+    def popUserInput(cls):
+        return cls.userinputQueue.get()
 
-    def close_callback(route, websockets):
-        # if not websockets:
-        #     print('Bye!')
-        exit()
+    @classmethod
+    def addUserMsg(cls, msg):
+        # Placeholder for adding user message to your chat
+        print(f"User: {msg}")
 
-    @eel.expose
-    def getUserInput(msg):
-        ChatBot.userinputQueue.put(msg)
-        print(msg)
-    
-    def close():
-        ChatBot.started = False
-    
-    def addUserMsg(msg):
-        eel.addUserMsg(msg)
-    
-    def addAppMsg(msg):
-        eel.addAppMsg(msg)
+    @classmethod
+    def addAppMsg(cls, msg):
+        # Placeholder for adding app message to your chat
+        print(f"App: {msg}")
 
-    def start():
-        path = os.path.dirname(os.path.abspath(__file__))
-        eel.init(path + r'\web', allowed_extensions=['.js', '.html'])
-        try:
-            eel.start('index.html', mode='chrome',
-                                    host='localhost',
-                                    port=27005,
-                                    block=False,
-                                    size=(350, 480),
-                                    position=(10,100),
-                                    disable_cache=True,
-                                    close_callback=ChatBot.close_callback)
-            ChatBot.started = True
-            while ChatBot.started:
-                try:
-                    eel.sleep(10.0)
-                except:
-                    #main thread exited
-                    break
-        
-        except:
-            pass
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/send', methods=['POST'])
+def send():
+    user_message = request.json.get('message')
+    ChatBot.addUserMsg(user_message)
+
+    # Here you would call your processing function and get a response
+    response_message = "This is a response from the ChatBot"  # Modify with your logic
+    ChatBot.addAppMsg(response_message)
+
+    return jsonify({'response': response_message})
+
+if __name__ == '__main__':
+    app.run(debug=True)
